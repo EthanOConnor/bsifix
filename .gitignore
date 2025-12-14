@@ -1,0 +1,9 @@
+__pycache__/
+.venv/
+*.pyc
+.DS_Store
+Fixed for BSI/
+*.tmp.wav
+*.ffmpeg.wav
+test/fixtures/bad/
+test/fixtures/good/
