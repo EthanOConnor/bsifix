@@ -1,6 +1,6 @@
 # BSIFix
 
-A production-grade utility to fix WAV compatibility issues for legacy BSI radio automation software.
+A utility to fix WAV compatibility issues for legacy BSI radio automation software.
 
 ## Features
 *   **Fixes Format**: Converts `WAVE_FORMAT_EXTENSIBLE` to standard PCM.
