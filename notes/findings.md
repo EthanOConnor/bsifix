@@ -18,9 +18,10 @@ We analyzed two fixtures to determine the authoritative cause of BSI incompatibi
 *   **Metadata**: Contained Chinese characters in `IGNR` (Genre). This proved that the *file format* (WAV) can technically hold UTF-8, and if BSI accepted this file, it implies BSI might be tolerant of UTF-8 in `INFO` chunks (or at least ignores them safely), but definitely requires PCM `fmt` headers.
 
 ## Conclusion
-The primary blocker is the **WAVE_FORMAT_EXTENSIBLE** header.
-A secondary requirement for professional integration is the presence of **BWF (bext)** and **CART** chunks, which BSI uses for title/artist display and automation cues.
+The primary blockers are:
+1.  **WAVE_FORMAT_EXTENSIBLE**: The header must be coerced to `WAVE_FORMAT_PCM` (0x0001).
+2.  **Chunk Order**: BSI legacy parsers appear to **require** the `data` chunk to immediately follow the `fmt` chunk. Placing `bext`/`cart` metadata *before* audio (while valid BWF) causes import failure.
 
-## Strategy Implemented
-1.  **Force PCM**: We interpret `0xFFFE` `fmt` chunks and, if the subformat is PCM, rewrite the header to `0x0001` with a size of 16 bytes.
-2.  **Prepend Metadata**: We inject `bext` and `cart` chunks *immediately after* the `fmt` chunk and *before* the `data` chunk. This optimization allows BSI to read all metadata without scanning the entire file.
+## Strategy Implemented (v3.1)
+1.  **Force PCM**: Coerce `0xFFFE` to `0x0001`.
+2.  **Strict Ordering**: `fmt` -> `data` -> `metadata`. We inject `bext`, `cart`, and `LIST` chunks *after* the audio data to satisfy the legacy parser, while still ensuring the metadata is present for systems that can read it.

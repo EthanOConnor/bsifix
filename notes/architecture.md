@@ -24,7 +24,7 @@
 *   **Chunk Injection**:
     *   Generates a **Version 0 BWF (bext)** chunk (Strict ASCII).
     *   Generates a **CART** chunk (Strict ASCII) with cut ID and producer info.
-    *   **Ordering**: The new file is written typically as `RIFF -> fmt -> bext -> cart -> LIST(INFO) -> data`. The critical design choice is placing `cart`/`bext` *before* `data`.
+    *   **Ordering (v3.1)**: The new file is written as `RIFF -> fmt -> data -> bext -> cart -> LIST`. This "Audio First" approach is required for legacy BSI compatibility, which fails if metadata chunks precede the audio.
 
 ### 4. Concurrency
 *   Uses `concurrent.futures.ProcessPoolExecutor` to spawn worker processes.

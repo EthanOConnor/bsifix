@@ -49,7 +49,7 @@ except ImportError:
 # Configuration & Constants
 # ------------------------------------------------------------------------------
 
-SCRIPT_VERSION = "3.0"
+SCRIPT_VERSION = "3.1"
 OUT_DIR_NAME = "Fixed for BSI"
 DEFAULT_GENRE = "Children's Music"
 COPY_BUF_SIZE = 1024 * 1024  # 1MB buffer for streaming
@@ -131,7 +131,7 @@ def build_bext_chunk(title, artist, date_str, time_str):
     out.extend(umid)
     out.extend(b'\x00' * 190) # Loudness(10) + Reserved(180)
     
-    coding_hist = b"CodingHistory=BSIFix3.0\r\n"
+    coding_hist = b"CodingHistory=BSIFix3.1\r\n"
     out.extend(coding_hist)
     
     return out
@@ -285,18 +285,35 @@ def process_single_file(src: str, out_root: Optional[str], in_place: bool) -> st
         with open(ffmpeg_tmp, 'rb') as f_in, open(tmp_final, 'wb') as f_out:
             f_out.write(b'RIFF\x00\x00\x00\x00WAVE')
             
+            # 1. fmt
             if fmt_chunk:
                 f_out.write(fmt_chunk[0])
                 f_out.write(struct.pack('<I', len(fmt_chunk[1])))
                 f_out.write(fmt_chunk[1])
                 if len(fmt_chunk[1]) % 2 == 1: f_out.write(b'\x00')
                 
+            # 2. Data (Immediate audio for legacy compat)
+            if data_chunk_info:
+                cid, size, offset = data_chunk_info
+                f_out.write(cid)
+                f_out.write(struct.pack('<I', size))
+                f_in.seek(offset)
+                remaining = size
+                while remaining > 0:
+                    chunk = f_in.read(min(remaining, COPY_BUF_SIZE))
+                    if not chunk: break
+                    f_out.write(chunk)
+                    remaining -= len(chunk)
+                if size % 2 == 1: f_out.write(b'\x00')
+
+            # 3. bext/cart (Metadata at end)
             for cid, d in [(b'bext', bext_data), (b'cart', cart_data)]:
                 f_out.write(cid)
                 f_out.write(struct.pack('<I', len(d)))
                 f_out.write(d)
                 if len(d) % 2 == 1: f_out.write(b'\x00')
                 
+            # 4. Others (LIST, etc)
             for cid, size, payload in other_chunks:
                 f_out.write(cid)
                 f_out.write(struct.pack('<I', size))
@@ -311,20 +328,7 @@ def process_single_file(src: str, out_root: Optional[str], in_place: bool) -> st
                 else:
                     f_out.write(payload)
                 if size % 2 == 1: f_out.write(b'\x00')
-                
-            if data_chunk_info:
-                cid, size, offset = data_chunk_info
-                f_out.write(cid)
-                f_out.write(struct.pack('<I', size))
-                f_in.seek(offset)
-                remaining = size
-                while remaining > 0:
-                    chunk = f_in.read(min(remaining, COPY_BUF_SIZE))
-                    if not chunk: break
-                    f_out.write(chunk)
-                    remaining -= len(chunk)
-                if size % 2 == 1: f_out.write(b'\x00')
-                
+            
             file_size = f_out.tell()
             f_out.seek(4)
             f_out.write(struct.pack('<I', file_size - 8))
