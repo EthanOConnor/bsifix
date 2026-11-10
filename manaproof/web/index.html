@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manaproof</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <aside id="nav">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M16 2 28 9v14L16 30 4 23V9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 17l4 4 8-9" fill="none" stroke="var(--ok)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><b>Manaproof</b><span>verified combo discovery</span></div>
+    </div>
+    <nav>
+      <a href="#/monitor" data-tab="monitor"><i>◉</i>Monitor</a>
+      <a href="#/combos" data-tab="combos"><i>∞</i>Combos <em id="nav-combos"></em></a>
+      <a href="#/cards" data-tab="cards"><i>▤</i>Cards <em id="nav-cards"></em></a>
+      <a href="#/graph" data-tab="graph"><i>⌬</i>Graph</a>
+      <a href="#/sandbox" data-tab="sandbox"><i>▷</i>Sandbox</a>
+      <a href="#/kernel" data-tab="kernel"><i>⊢</i>Kernel</a>
+    </nav>
+    <div id="side-status"></div>
+  </aside>
+  <main id="view"></main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
